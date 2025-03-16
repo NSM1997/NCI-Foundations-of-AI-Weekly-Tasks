@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Python WASM Calculator</title>
+  </head>
+  <body>
+    <h1>Python WASM Calculator (Pyodide)</h1>
+    <input
+      type="number"
+      id="num1"
+      placeholder="First number"
+    />
+    <input
+      type="number"
+      id="num2"
+      placeholder="Second number"
+    />
+    <br /><br />
+    <button onclick="calculate('add')">Add</button>
+    <button onclick="calculate('subtract')">Subtract</button>
+    <button onclick="calculate('multiply')">Multiply</button>
+    <button onclick="calculate('divide')">Divide</button>
+    <p id="result"></p>
+
+    <!-- Pyodide Script -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script>
+      // Initialize Pyodide
+      let pyodideReadyPromise = loadPyodide().then(async (pyodide) => {
+        await pyodide.runPythonAsync(`
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        return "Error: Division by zero"
+    return a / b
+        `)
+        return pyodide
+      })
+
+      async function calculate(operation) {
+        const pyodide = await pyodideReadyPromise
+
+        let a = parseFloat(document.getElementById('num1').value)
+        let b = parseFloat(document.getElementById('num2').value)
+
+        let code = `result = ${operation}(${a}, ${b})`
+
+        try {
+          await pyodide.runPythonAsync(code)
+          let result = pyodide.globals.get('result')
+          document.getElementById('result').innerText = 'Result: ' + result
+        } catch (error) {
+          document.getElementById('result').innerText =
+            'Error: ' + error.message
+          console.error(error)
+        }
+      }
+    </script>
+  </body>
+</html>
